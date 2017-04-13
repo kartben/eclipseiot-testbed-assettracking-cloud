@@ -33,8 +33,8 @@ import java.util.*;
 @Singleton
 public class UtilsEndpoint {
 
-    public static final int MAX_VEHICLES = 10;
-    public static final int MAX_PACKAGES_PER_VEHICLE = 20;
+    public static final int MAX_VEHICLES = 3;
+    public static final int MAX_PACKAGES_PER_VEHICLE = 3;
     public static final long DAY_IN_MS = 24*60*60*1000;
 
     @Inject
@@ -142,6 +142,38 @@ public class UtilsEndpoint {
                 shipmentCache.put(sensorId + "/" + vin, s);
                 System.out.println("Inserting shipment: " + s);
             }
+
+            // add hardwired sensortag
+            List<Facility> route = new ArrayList<Facility>();
+
+            Facility p_origin = facilitiesCache.get(rand(ORIGINS));
+            Facility p_dest = facilitiesCache.get(rand(DESTS));
+
+            route.add(p_origin);
+            route.add(v_dest);
+            route.add(p_dest);
+
+            List<Telemetry> telemetry = new ArrayList<>();
+            telemetry.add(new Telemetry("°C", 100.0, 0.0, "Temperature", "Ambient"));
+            telemetry.add(new Telemetry("%", 100.0, 0.0, "Humidity", "Humidity"));
+            telemetry.add(new Telemetry("lm", 2000.0, 1000.0, "Light", "Light"));
+            telemetry.add(new Telemetry("inHg", 200, 100, "Pressure", "Pressure"));
+
+            Customer cust = customerCache.get(rand(COMPANIES));
+
+            // left ~3 days, ago eta ~5 days from now
+            Date etd = new Date(new Date().getTime() - DAY_IN_MS - (long)(Math.random() * DAY_IN_MS * 3));
+            Date eta = new Date(new Date().getTime() + DAY_IN_MS + (long)(Math.random() * DAY_IN_MS * 4));
+
+            String sensorId = "34:B1:F7:D1:44:15";
+
+            Shipment s = new Shipment(customerCache.get(rand(COMPANIES)),
+                    "Package sensortag", "34:B1:F7:D1:44:15" + rand(PKG_DESCS),
+                    sensorId, route, etd, eta, Math.random() * 2000, v);
+
+            s.setTelemetry(telemetry);
+            shipmentCache.put(sensorId + "/" + vin, s);
+            System.out.println("Inserting shipment: " + s);
 
 
         }
