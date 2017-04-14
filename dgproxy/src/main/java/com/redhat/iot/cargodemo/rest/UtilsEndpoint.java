@@ -135,7 +135,7 @@ public class UtilsEndpoint {
                 String sensorId = "pkg-" + j;
 
                 Shipment s = new Shipment(customerCache.get(rand(COMPANIES)),
-                        "Package " + j, rand(PKG_DESCS),
+                        "Package " + j, rand(PKG_DESCS) + "[" + sensorId + "]",
                         sensorId, route, etd, eta, Math.random() * 2000, v);
 
                 s.setTelemetry(telemetry);
