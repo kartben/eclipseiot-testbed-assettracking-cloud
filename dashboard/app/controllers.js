@@ -728,17 +728,17 @@ angular.module('app')
                                             x: {
                                                 key: "x",
                                                 type: 'date',
-                                                tickFormat: function(value, idx) {
-                                                    return ($filter('date')(value, 'medium'));
-                                                }
+                                                // tickFormat: function(value, idx) {
+                                                //     return ($filter('date')(value, 'medium'));
+                                                // }
                                             }
                                         },
-                                        margin: {
-                                            top: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            left: 0
-                                        },
+                                        // margin: {
+                                        //     top: 0,
+                                        //     right: 0,
+                                        //     bottom: 0,
+                                        //     left: 0
+                                        // },
                                         symbols: [
                                             {
                                                 type: 'hline',
