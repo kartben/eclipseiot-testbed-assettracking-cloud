@@ -143,7 +143,7 @@ public class UtilsEndpoint {
                 System.out.println("Inserting shipment: " + s);
             }
 
-            // add hardwired sensortag
+            // add hardwired sensortags
             List<Facility> route = new ArrayList<Facility>();
 
             Facility p_origin = facilitiesCache.get(rand(ORIGINS));
@@ -154,10 +154,10 @@ public class UtilsEndpoint {
             route.add(p_dest);
 
             List<Telemetry> telemetry = new ArrayList<>();
-            telemetry.add(new Telemetry("°C", 100.0, 0.0, "Temperature", "Ambient"));
+            telemetry.add(new Telemetry("°C", 35.0, 15.0, "Temperature", "Ambient"));
             telemetry.add(new Telemetry("%", 100.0, 0.0, "Humidity", "Humidity"));
             telemetry.add(new Telemetry("lm", 2000.0, 1000.0, "Light", "Light"));
-            telemetry.add(new Telemetry("inHg", 200, 100, "Pressure", "Pressure"));
+            telemetry.add(new Telemetry("Pa", 1200, 800, "Pressure", "Pressure"));
 
             Customer cust = customerCache.get(rand(COMPANIES));
 
@@ -168,12 +168,33 @@ public class UtilsEndpoint {
             String sensorId = "34:B1:F7:D1:44:15";
 
             Shipment s = new Shipment(customerCache.get(rand(COMPANIES)),
-                    "Package sensortag", "34:B1:F7:D1:44:15" + rand(PKG_DESCS),
+                    sensorId, rand(PKG_DESCS) + "[" + sensorId + "]",
                     sensorId, route, etd, eta, Math.random() * 2000, v);
 
             s.setTelemetry(telemetry);
             shipmentCache.put(sensorId + "/" + vin, s);
             System.out.println("Inserting shipment: " + s);
+
+
+            sensorId = "24:71:89:BE:CE:04";
+            s = new Shipment(customerCache.get(rand(COMPANIES)),
+                    sensorId, rand(PKG_DESCS) + "[" + sensorId + "]",
+                    sensorId, route, etd, eta, Math.random() * 2000, v);
+
+            s.setTelemetry(telemetry);
+            shipmentCache.put(sensorId + "/" + vin, s);
+
+
+
+            sensorId = "24:71:89:E8:9F:82";
+            s = new Shipment(customerCache.get(rand(COMPANIES)),
+                    sensorId, rand(PKG_DESCS) + "[" + sensorId + "]",
+                    sensorId, route, etd, eta, Math.random() * 2000, v);
+
+            s.setTelemetry(telemetry);
+            shipmentCache.put(sensorId + "/" + vin, s);
+
+
 
 
         }
