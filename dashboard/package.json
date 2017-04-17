@@ -10,7 +10,7 @@
   "dependencies": {
     "express": "^4.13.4",
     "request": "^2.74.0",
-    "n3-charts": "2.0.18"
+    "n3-charts": "v3.0.0-beta.4"
   },
   "devDependencies": {
     "bower": ">=1.7.9"
