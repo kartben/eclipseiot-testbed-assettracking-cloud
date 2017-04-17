@@ -154,9 +154,9 @@ public class UtilsEndpoint {
             route.add(p_dest);
 
             List<Telemetry> telemetry = new ArrayList<>();
-            telemetry.add(new Telemetry("°C", 35.0, 15.0, "Temperature", "Ambient"));
-            telemetry.add(new Telemetry("%", 100.0, 0.0, "Humidity", "Humidity"));
-            telemetry.add(new Telemetry("lm", 2000.0, 1000.0, "Light", "Light"));
+            telemetry.add(new Telemetry("°C", 28.0, 15.0, "Temperature", "Ambient"));
+            telemetry.add(new Telemetry("%", 20.0, 80.0, "Humidity", "Humidity"));
+            telemetry.add(new Telemetry("lm", 2000.0, 0.0, "Light", "Light"));
             telemetry.add(new Telemetry("Pa", 1200, 800, "Pressure", "Pressure"));
 
             Customer cust = customerCache.get(rand(COMPANIES));
