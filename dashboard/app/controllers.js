@@ -718,6 +718,8 @@ angular.module('app')
                                                 dataset: "dataset0",
                                                 key: "val_0",
                                                 label: telemetry.name,
+                                                min: telemetry.min,
+                                                max: telemetry.max,
                                                 color: "#1f77b4",
                                                 type: ['area'],
                                                 id: 'mySeries0',
@@ -731,7 +733,8 @@ angular.module('app')
                                                 tickFormat: function(value, idx) {
                                                     return ($filter('date')(value, 'medium'));
                                                 }
-                                            }
+                                            },
+                                            y: { min: 0, max: 30}
                                         },
                                         margin: {
                                             top: 0,
