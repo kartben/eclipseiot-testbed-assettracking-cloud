@@ -33,8 +33,8 @@ import java.util.*;
 @Singleton
 public class UtilsEndpoint {
 
-    public static final int MAX_VEHICLES = 3;
-    public static final int MAX_PACKAGES_PER_VEHICLE = 3;
+    public static final int MAX_VEHICLES = 10;
+    public static final int MAX_PACKAGES_PER_VEHICLE = 20;
     public static final long DAY_IN_MS = 24*60*60*1000;
 
     @Inject
@@ -90,116 +90,76 @@ public class UtilsEndpoint {
 
             String vin = "truck-" + i;
 
-            Vehicle v = new Vehicle(vin, rand(VEHICLE_TYPES));
+            Vehicle newVehicle = new Vehicle(vin, rand(VEHICLE_TYPES));
 
             Facility v_origin = facilitiesCache.get(rand(ORIGINS));
             Facility v_dest = facilitiesCache.get(rand(DESTS));
 
-            v.setOrigin(v_origin);
-            v.setDestination(v_dest);
+            newVehicle.setOrigin(v_origin);
+            newVehicle.setDestination(v_dest);
 
             List<Telemetry> vehicleTelemetry = new ArrayList<>();
-            vehicleTelemetry.add(new Telemetry("°C", 300, 0.0, "Engine Temp", "temp"));
-            vehicleTelemetry.add(new Telemetry("rpm", 3500, 0.0, "RPM", "rpm"));
-            vehicleTelemetry.add(new Telemetry("psi", 2000.0, 1000.0, "Oil Pressure", "oilpress"));
-            v.setTelemetry(vehicleTelemetry);
+            vehicleTelemetry.add(new Telemetry("°C", 250.0, 150.0, "Engine Temp", "temp"));
+            vehicleTelemetry.add(new Telemetry("rpm", 2200.0, 500.0, "RPM", "rpm"));
+            vehicleTelemetry.add(new Telemetry("psi", 80.0, 30.0, "Oil Pressure", "oilpress"));
+            newVehicle.setTelemetry(vehicleTelemetry);
 
             Date v_eta = new Date(new Date().getTime() + DAY_IN_MS + (long)(Math.random() * DAY_IN_MS * 2));
 
-            v.setEta(v_eta);
-            vehiclesCache.put(vin, v);
+            newVehicle.setEta(v_eta);
+            vehiclesCache.put(vin, newVehicle);
 
             for (int j = 1; j <= MAX_PACKAGES_PER_VEHICLE; j++) {
 
-                List<Facility> route = new ArrayList<Facility>();
-
-                Facility p_origin = facilitiesCache.get(rand(ORIGINS));
-                Facility p_dest = facilitiesCache.get(rand(DESTS));
-
-                route.add(p_origin);
-                route.add(v_dest);
-                route.add(p_dest);
-
-                List<Telemetry> telemetry = new ArrayList<>();
-                telemetry.add(new Telemetry("°C", 100.0, 0.0, "Temperature", "Ambient"));
-                telemetry.add(new Telemetry("%", 100.0, 0.0, "Humidity", "Humidity"));
-                telemetry.add(new Telemetry("lm", 2000.0, 1000.0, "Light", "Light"));
-                telemetry.add(new Telemetry("inHg", 200, 100, "Pressure", "Pressure"));
-
-                Customer cust = customerCache.get(rand(COMPANIES));
-
-                // left ~3 days, ago eta ~5 days from now
-                Date etd = new Date(new Date().getTime() - DAY_IN_MS - (long)(Math.random() * DAY_IN_MS * 3));
-                Date eta = new Date(new Date().getTime() + DAY_IN_MS + (long)(Math.random() * DAY_IN_MS * 4));
-
-                String sensorId = "pkg-" + j;
-
-                Shipment s = new Shipment(customerCache.get(rand(COMPANIES)),
-                        "Package " + j, rand(PKG_DESCS) + "[" + sensorId + "]",
-                        sensorId, route, etd, eta, Math.random() * 2000, v);
-
-                s.setTelemetry(telemetry);
-                shipmentCache.put(sensorId + "/" + vin, s);
-                System.out.println("Inserting shipment: " + s);
+                addShipment(customerCache, facilitiesCache, shipmentCache, vin, newVehicle, v_dest, "pkg-" + j,
+                        rand(PKG_DESCS));
             }
 
-            // add hardwired sensortags
-            List<Facility> route = new ArrayList<Facility>();
-
-            Facility p_origin = facilitiesCache.get(rand(ORIGINS));
-            Facility p_dest = facilitiesCache.get(rand(DESTS));
-
-            route.add(p_origin);
-            route.add(v_dest);
-            route.add(p_dest);
-
-            List<Telemetry> telemetry = new ArrayList<>();
-            telemetry.add(new Telemetry("°C", 28.0, 15.0, "Temperature", "Ambient"));
-            telemetry.add(new Telemetry("%", 20.0, 80.0, "Humidity", "Humidity"));
-            telemetry.add(new Telemetry("lm", 2000.0, 0.0, "Light", "Light"));
-            telemetry.add(new Telemetry("Pa", 1200, 800, "Pressure", "Pressure"));
-
-            Customer cust = customerCache.get(rand(COMPANIES));
-
-            // left ~3 days, ago eta ~5 days from now
-            Date etd = new Date(new Date().getTime() - DAY_IN_MS - (long)(Math.random() * DAY_IN_MS * 3));
-            Date eta = new Date(new Date().getTime() + DAY_IN_MS + (long)(Math.random() * DAY_IN_MS * 4));
-
-            String sensorId = "34:B1:F7:D1:44:15";
-
-            Shipment s = new Shipment(customerCache.get(rand(COMPANIES)),
-                    sensorId, rand(PKG_DESCS) + "[" + sensorId + "]",
-                    sensorId, route, etd, eta, Math.random() * 2000, v);
-
-            s.setTelemetry(telemetry);
-            shipmentCache.put(sensorId + "/" + vin, s);
-            System.out.println("Inserting shipment: " + s);
-
-
-            sensorId = "24:71:89:BE:CE:04";
-            s = new Shipment(customerCache.get(rand(COMPANIES)),
-                    sensorId, rand(PKG_DESCS) + "[" + sensorId + "]",
-                    sensorId, route, etd, eta, Math.random() * 2000, v);
-
-            s.setTelemetry(telemetry);
-            shipmentCache.put(sensorId + "/" + vin, s);
-
-
-
-            sensorId = "24:71:89:E8:9F:82";
-            s = new Shipment(customerCache.get(rand(COMPANIES)),
-                    sensorId, rand(PKG_DESCS) + "[" + sensorId + "]",
-                    sensorId, route, etd, eta, Math.random() * 2000, v);
-
-            s.setTelemetry(telemetry);
-            shipmentCache.put(sensorId + "/" + vin, s);
-
-
-
+            // Add additional sensor ids if present
+            String addl = System.getenv("ADDITIONAL_SENSOR_IDS");
+            if (addl != null) {
+                String[] ids = addl.split(",");
+                for (String id: ids) {
+                    addShipment(customerCache, facilitiesCache, shipmentCache, vin, newVehicle, v_dest, id.trim(),
+                            rand(PKG_DESCS) + " [IOT]");
+                }
+            }
 
         }
         calcUtilization();
 
+    }
+
+    private void addShipment(Map<String, Customer> customerCache, Map<String, Facility> facilitiesCache,
+                             Map<String, Shipment> shipmentCache, String vin, Vehicle v, Facility v_dest, String sensor_id,
+                             String pkgDesc) {
+        List<Facility> route = new ArrayList<Facility>();
+
+        Facility p_origin = facilitiesCache.get(rand(ORIGINS));
+        Facility p_dest = facilitiesCache.get(rand(DESTS));
+
+        route.add(p_origin);
+        route.add(v_dest);
+        route.add(p_dest);
+
+        List<Telemetry> telemetry = new ArrayList<>();
+        telemetry.add(new Telemetry("°C", 40.0, 0.0, "Temperature", "Ambient"));
+        telemetry.add(new Telemetry("%", 100.0, 0.0, "Humidity", "Humidity"));
+        telemetry.add(new Telemetry("lm", 400.0, 100.0, "Light", "Light"));
+        telemetry.add(new Telemetry("inHg", 31, 29, "Pressure", "Pressure"));
+
+        Customer cust = customerCache.get(rand(COMPANIES));
+
+        // left ~3 days, ago eta ~5 days from now
+        Date etd = new Date(new Date().getTime() - DAY_IN_MS - (long)(Math.random() * DAY_IN_MS * 3));
+        Date eta = new Date(new Date().getTime() + DAY_IN_MS + (long)(Math.random() * DAY_IN_MS * 4));
+
+        Shipment s = new Shipment(customerCache.get(rand(COMPANIES)),
+                "Package " + sensor_id + "/" + vin, pkgDesc,
+                sensor_id, route, etd, eta, Math.random() * 2000, v);
+
+        s.setTelemetry(telemetry);
+        shipmentCache.put(sensor_id + "/" + vin, s);
     }
 
     private String rand(String[] strs) {
@@ -319,12 +279,12 @@ public class UtilsEndpoint {
 
         long warningCount = cache.keySet().stream()
                 .map(cache::get)
-                .filter(v -> v.getStatus() == Shipment.Status.WARNING)
+                .filter(v -> "warning".equalsIgnoreCase(v.getStatus()))
                 .count();
 
         long errorCount = cache.keySet().stream()
                 .map(cache::get)
-                .filter(v -> v.getStatus() == Shipment.Status.ERROR)
+                .filter(v -> "error".equalsIgnoreCase(v.getStatus()))
                 .count();
 
         summary.setWarningCount(warningCount);
@@ -355,12 +315,12 @@ public class UtilsEndpoint {
 
         long warningCount = cache.keySet().stream()
                 .map(cache::get)
-                .filter(v -> v.getStatus() == Vehicle.Status.WARNING)
+                .filter(v -> "warning".equalsIgnoreCase(v.getStatus()))
                 .count();
 
         long errorCount = cache.keySet().stream()
                 .map(cache::get)
-                .filter(v -> v.getStatus() == Vehicle.Status.ERROR)
+                .filter(v -> "error".equalsIgnoreCase(v.getStatus()))
                 .count();
 
         summary.setWarningCount(warningCount);
@@ -477,4 +437,3 @@ public class UtilsEndpoint {
     };
 
 }
-
