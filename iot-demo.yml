@@ -42,7 +42,7 @@ parameters:
 - description: Git source URI for application
   name: GIT_URI
   required: true
-  value: https://github.com/redhat-iot/summit2017
+  value: https://github.com/kartben/summit2017
 - description: Git branch/tag reference
   name: GIT_REF
   value: master
@@ -88,11 +88,11 @@ parameters:
   required: true
 - description: Datastore password
   name: ADDITIONAL_SENSOR_IDS
-  value: "B0:32:34:34:34:34,C0:43:34:23:24"
+  value: "24:71:89:E8:9F:82,24:71:89:BE:CE:04,34:B1:F7:D1:44:15"
   required: false
 - description: Number of Kura Simulators to run
   name: KSIM_NUM_GATEWAYS
-  value: "2"
+  value: "1"
   required: true
 - description: Kapua Account Name
   name: KSIM_ACCOUNT_NAME
