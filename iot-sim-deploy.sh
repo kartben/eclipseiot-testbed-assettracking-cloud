@@ -12,7 +12,7 @@
 
 . openshift-common.sh
 
-: ${OPENSHIFT_PROJECT_NAME:=redhat-iot}
+: ${OPENSHIFT_PROJECT_NAME:=eclipseiot-assettracking-testbed}
 : ${DOCKER_ACCOUNT:=redhatiot}
 
 

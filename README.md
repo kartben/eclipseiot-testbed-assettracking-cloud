@@ -36,7 +36,7 @@ cd summit2017
 
 3. Issue the following commands to create a new OpenShift project and deploy the demo components:
 ```
-oc new-project redhat-iot --display-name="Red Hat IoT Demo"
+oc new-project eclipseiot-assettracking-testbed --display-name="Eclipse IoT Asset Tracking Testbed"
 oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default -n $(oc project -q)
 ./openshift-deploy.sh
 ```
@@ -52,7 +52,7 @@ oc create -n openshift -f https://raw.githubusercontent.com/openshift/origin/mas
 ```
 
 Once everything is up and running, you can access the demo using the URL of the `dashboard` route,
-for example `http://dashboard-redhat-iot.domain`
+for example `http://dashboard-eclipseiot-assettracking-testbed.domain`
 
 Add template to "Add to project"
 --------------------------------
@@ -81,7 +81,7 @@ There are other options in the template that can be overridden if you know what 
 Uninstalling and cleaning up project
 ------------------------------------
 ```
-oc delete all --all -n redhat-iot && oc delete configmap hawkular-openshift-agent-kapua data-simulator-config -n redhat-iot
+oc delete all --all -n eclipseiot-assettracking-testbed && oc delete configmap hawkular-openshift-agent-kapua data-simulator-config -n eclipseiot-assettracking-testbed
 ```
 This will delete everything but the project "Red Hat IoT". This is suitable for testing new scripts, template,
 etc.

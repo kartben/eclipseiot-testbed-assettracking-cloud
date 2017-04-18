@@ -14,7 +14,7 @@ set -e
 
 . openshift-common.sh
 
-OPENSHIFT_PROJECT_NAME=${OPENSHIFT_PROJECT_NAME:=redhat-iot}
+OPENSHIFT_PROJECT_NAME=${OPENSHIFT_PROJECT_NAME:=eclipseiot-assettracking-testbed}
 IMAGE_VERSION=${IMAGE_VERSION:=2017-04-08}
 
 # print error and exit when necessary

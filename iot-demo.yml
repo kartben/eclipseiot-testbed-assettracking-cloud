@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
   annotations:
-    description: Red Hat IoT Demo Application Template
+    description: Eclipse IoT Asset Tracking testbed Application Template
     iconClass: icon-shadowman
     tags: jboss,iot,kapua,kura,eclipse
   name: iot-demo
