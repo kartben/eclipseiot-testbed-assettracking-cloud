@@ -2,8 +2,8 @@
 
 angular.module('app')
 
-    .factory('SensorData', ['$http', '$timeout', '$interval', '$rootScope', '$location', '$q', 'APP_CONFIG', 'Notifications', 'Vehicles', 'Shipments',
-        function ($http, $timeout, $interval, $rootScope, $location, $q, APP_CONFIG, Notifications, Vehicles, Shipments) {
+    .factory('SensorData', ['$http', '$filter', '$timeout', '$interval', '$rootScope', '$location', '$q', 'APP_CONFIG', 'Notifications', 'Vehicles', 'Shipments',
+        function ($http, $filter, $timeout, $interval, $rootScope, $location, $q, APP_CONFIG, Notifications, Vehicles, Shipments) {
         var factory = {},
             client = null,
             msgproto = null,
@@ -12,42 +12,66 @@ angular.module('app')
             alertRegex = /Red-Hat\/([^\/]*)\/iot-demo\/([^\/]*)\/([^\/]*)\/alerts$/,
             metricOverrides = {};
 
-            function setFromISO8601(isostr) {
-            var parts = isostr.match(/\d+/g);
-            return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]));
-        }
+            // Set the name of the hidden property and the change event for visibility
+            var hidden, visibilityChange;
+            if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
+                hidden = "hidden";
+                visibilityChange = "visibilitychange";
+            } else if (typeof document.msHidden !== "undefined") {
+                hidden = "msHidden";
+                visibilityChange = "msvisibilitychange";
+            } else if (typeof document.webkitHidden !== "undefined") {
+                hidden = "webkitHidden";
+                visibilityChange = "webkitvisibilitychange";
+            }
+
+            // If the page/tab is hidden, pause the data stream;
+            // if the page/tab is shown, restart the stream
+            function handleVisibilityChange() {
+                if (document[hidden]) {
+                    listeners.forEach(function(listener) {
+                        client.unsubscribe(listener.topic);
+                    });
+                } else {
+                    // doc played
+                    listeners.forEach(function(listener) {
+                        client.subscribe(listener.topic);
+                    });
+                }
+            }
+
+            // Warn if the browser doesn't support addEventListener or the Page Visibility API
+            if (typeof document.addEventListener === "undefined" || typeof document[hidden] === "undefined") {
+                console.log("This demo requires a browser, such as Google Chrome or Firefox, that supports the Page Visibility API.");
+            } else {
+                // Handle page visibility change
+                document.addEventListener(visibilityChange, handleVisibilityChange, false);
+            }
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
                 console.log("onConnectionLost:"+responseObject.errorMessage);
+                Notifications.warn("Lost connection to broker, attempting to reconnect (" + responseObject.errorMessage);
+                connectClient(1);
+
             }
         }
 
-        function handleAlert(destination, alertPayload) {
-            var matches = alertRegex.exec(destination);
-            var objType = matches[2];
-            var objId = matches[3];
+        function handleAlert(destination, alertObj) {
 
-            switch (objType) {
-                case 'trucks':
-                    $rootScope.$broadcast('vehicle:alert', {
-                        vin: objId
-                    });
-                    break;
-                case 'packages':
-                    Shipments.getAllShipments(function(allShipments) {
-                        allShipments.forEach(function(shipment) {
-                            if (shipment.sensor_id == objId) {
-                                $rootScope.$broadcast('package:alert', {
-                                    vin: shipment.cur_vehicle.vin,
-                                    sensor_id: objId
-                                });
-                            }
-                        });
-                    });
-                    break;
-                default:
-                    console.log("ignoring alert: " + destination);
+            if (alertObj.truckid != null && alertObj.sensorid == null) {
+                $rootScope.$broadcast('vehicle:alert', {
+                    vin: alertObj.truckid,
+                    message: $filter('date')(alertObj.date, 'medium') + ": " +
+                                alertObj.desc + ": " + alertObj.message
+                });
+            } else if (alertObj.truckid != null && alertObj.sensorid != null) {
+                $rootScope.$broadcast('package:alert', {
+                    vin: alertObj.truckid,
+                    sensor_id: alertObj.sensorid,
+                    message: $filter('date')(alertObj.date, 'medium') + ": " +
+                                alertObj.desc + ": " + alertObj.message
+                });
             }
 
         }
@@ -56,7 +80,7 @@ angular.module('app')
             var destination = message.destinationName;
 
             if (alertRegex.test(destination)) {
-                handleAlert(destination, decoded);
+                handleAlert(destination, JSON.parse(message.payloadString));
             } else {
                 var payload = message.payloadBytes;
                 var decoded =  msgproto.decode(payload);
@@ -76,8 +100,8 @@ angular.module('app')
                         targetObj.telemetry.forEach(function(objTel) {
                             var telName = objTel.name;
                             var telMetricName = objTel.metricName;
-                            var value =  metricOverrides[telMetricName] ?
-                                (metricOverrides[telMetricName] * (.95 + 0.05 * Math.random())).toFixed(1) :
+                            var value =  (metricOverrides[listener.objId] && metricOverrides[listener.objId][telMetricName]) ?
+                                (metricOverrides[listener.objId][telMetricName] * (.95 + 0.05 * Math.random())).toFixed(1) :
                                 decodedMetric.doubleValue.toFixed(1);
                             if (telMetricName == decodedMetric.name) {
                                 data.push({
@@ -100,8 +124,18 @@ angular.module('app')
 
         }
 
-        function connectClient() {
+        function connectClient(attempt) {
 
+            var MAX_ATTEMPTS = 100;
+
+            if (attempt > MAX_ATTEMPTS) {
+                Notifications.error("Cannot connect to broker after " + MAX_ATTEMPTS +" attempts, reload to retry");
+                return;
+            }
+
+            if (attempt > 1) {
+                Notifications.warn("Trouble connecting to broker, will keep trying (reload to re-start the count)");
+            }
             var brokerHostname = APP_CONFIG.BROKER_WEBSOCKET_HOSTNAME + '.' + $location.host().replace(/^.*?\.(.*)/g,"$1");
             client = new Paho.MQTT.Client(brokerHostname, Number(APP_CONFIG.BROKER_WEBSOCKET_PORT), "demo-client-" + guid());
 
@@ -114,9 +148,22 @@ angular.module('app')
                 msgproto = root.lookup("kuradatatypes.KuraPayload");
                 // connect the client
                 client.connect({
-                    onSuccess:onConnect,
+                    onSuccess: function() {
+                        console.log("Connected to broker");
+                        if (attempt > 1) {
+                            Notifications.success("Connected to the IoT cloud!");
+                        }
+                        var topicName = "Red-Hat/+/iot-demo/+/+/alerts";
+                        client.subscribe(topicName);
+                    },
                     userName: APP_CONFIG.BROKER_USERNAME,
-                    password: APP_CONFIG.BROKER_PASSWORD
+                    password: APP_CONFIG.BROKER_PASSWORD,
+                    onFailure: function(err) {
+                        console.log("Failed to connect to broker (attempt " + attempt + "), retrying. Error code:" + err.errorCode + " message:" + err.errorMessage);
+                        $timeout(function() {
+                            connectClient(attempt+1);
+                        }, 10000);
+                    }
                 });
             });
         }
@@ -164,7 +211,7 @@ angular.module('app')
             client.unsubscribe(topicName);
             console.log("UNsubscribed to " + topicName);
             listeners = listeners.filter(function(listener) {
-                return ((!listener.vehicle) | (listener.vehicle.vin != vehicle.vin));
+                return ((!listener.vehicle) || (listener.vehicle.vin != vehicle.vin));
             });
         };
 
@@ -253,15 +300,22 @@ angular.module('app')
 
         };
 
-        function sendMsg(obj, topic) {
-            var payload = msgproto.encode(obj).finish();
+        function sendJSONObjectMsg(jsonObj, topic) {
+            var message = new Paho.MQTT.Message(JSON.stringify(jsonObj));
+            message.destinationName = topic;
+            client.send(message);
 
+        }
+
+        function sendKuraMsg(kuraObj, topic) {
+            var payload = msgproto.encode(kuraObj).finish();
             var message = new Paho.MQTT.Message(payload);
             message.destinationName = topic;
             client.send(message);
+
         }
 
-        factory.cascadingAlert = function() {
+        factory.cascadingAlert = function(vehicle) {
 
             var hitemp =
                 {
@@ -271,17 +325,6 @@ angular.module('app')
                             name: 'temp',
                             type: 'DOUBLE',
                             doubleValue: 265
-                        }
-                    ]
-                };
-            var hipkgtemp =
-                {
-                    timestamp: new Date().getTime(),
-                    metric: [
-                        {
-                            name: 'Ambient',
-                            type: 'DOUBLE',
-                            doubleValue: 42.2
                         }
                     ]
                 };
@@ -298,36 +341,73 @@ angular.module('app')
                     ]
                 };
 
+            metricOverrides[vehicle.vin] = {};
 
             $interval(function() {
-                metricOverrides['temp'] = 265;
-                sendMsg(hitemp, 'Red-Hat/sim-truck/iot-demo/trucks/truck-8')
+                metricOverrides[vehicle.vin]['temp'] = 265;
+                sendKuraMsg(hitemp, 'Red-Hat/sim-truck/iot-demo/trucks/' + vehicle.vin)
             }, 5000);
 
             $timeout(function() {
-                metricOverrides['oilpress'] = 95;
                 $interval(function() {
-                    sendMsg(hipress, 'Red-Hat/sim-truck/iot-demo/trucks/truck-8');
-                    for (var i = 1; i <= 20; i++) {
-                        sendMsg(hipkgtemp, 'Red-Hat/sim-truck/iot-demo/packages/package-' + i);
-                    }
-                    metricOverrides['Ambient'] = 42.2;
+                    metricOverrides[vehicle.vin]['oilpress'] = 95;
+                    sendKuraMsg(hipress, 'Red-Hat/sim-truck/iot-demo/trucks/' + vehicle.vin);
                 }, 5000);
-            }, 15000);
+                var hitempalert = {
+                    date: new Date().getTime(),
+                    from: "Operations",
+                    desc: "Truck Maintenance Required",
+                    message: "Your vehicle is in need of maintenance. A maintenance crew has been dispatched to the " + vehicle.destination.name + " facility (bay 4), please arrive no later than 10:0am EDT",
+                    type: 'VEHICLE',
+                    truckid: vehicle.vin,
+                    sensorid: null
+                };
 
-
-            $timeout(function() {
-                sendMsg(hitemp, 'Red-Hat/sim-truck/iot-demo/trucks/truck-8/alerts');
-                ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'].forEach(function(el, idx) {
-                    $timeout(function() {
-                        sendMsg(hipkgtemp, 'Red-Hat/sim-truck/iot-demo/packages/pkg-' + el + '/alerts');
-                    }, idx * 500);
-                });
-
-            }, 25000);
+                sendJSONObjectMsg(hitempalert, 'Red-Hat/sim-truck/iot-demo/trucks/' + vehicle.vin + '/alerts');
+            }, 10000);
 
         };
 
-        connectClient();
+        factory.cascadingPkgAlert = function(vehicle, pkg) {
+
+            var hipkgtemp =
+                {
+                    timestamp: new Date().getTime(),
+                    metric: [
+                        {
+                            name: 'Ambient',
+                            type: 'DOUBLE',
+                            doubleValue: 42.2
+                        }
+                    ]
+                };
+
+            $timeout(function() {
+                $interval(function() {
+                    sendKuraMsg(hipkgtemp, 'Red-Hat/sim-truck/iot-demo/packages/' + pkg.sensor_id);
+                    metricOverrides[pkg.sensor_id] = {};
+                    metricOverrides[pkg.sensor_id]['Ambient'] = 42.2;
+                }, 5000);
+            }, 5000);
+
+
+            $timeout(function() {
+                var hitempalert = {
+                    date: new Date().getTime(),
+                    from: "Operations",
+                    desc: "Client Package Alert",
+                    message: 'Temperature on package ' + pkg.sensor_id + ' (' + pkg.desc + ' for client ' + pkg.customer.name + ') on shelf 12 is out of spec (42.2°C), please verify condition',
+                    type: 'PACKAGE',
+                    truckid: vehicle.vin,
+                    sensorid: pkg.sensor_id
+                };
+
+                sendJSONObjectMsg(hitempalert, 'Red-Hat/sim-truck/iot-demo/packages/' + pkg.sensor_id + '/alerts');
+
+            }, 8000);
+
+        };
+
+            connectClient(1);
         return factory;
     }]);

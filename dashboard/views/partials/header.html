@@ -7,13 +7,19 @@
           <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" href="#/">
-          <img ng-src="/app/imgs/logo.png" alt="Red Hat&reg; logo" />
+          <div>
+            <div style="float:left;margin-right: 50px"><img ng-src="/app/imgs/vandelay.png" alt="Shipping Company&reg; logo" /></div>
+          </div>
         </a>
+        <center><h1 style="color: white">Red Hat + Eurotech IoT Fleet Telematics Demo</h1></center>
       </div>
       <div class="collapse navbar-collapse navbar-collapse-1">
         <ul class="nav navbar-nav navbar-utility">
           <li>
-            <a ng-href="" ng-click="cascadingAlert();"><span title="Simulate Cascading Failure" class="fa fa-bolt"></span></a>
+            <a ng-href="" ng-click="cascadingAlert();"><span style="color: {{vehicleAlertColor}};" title="Simulate Cascading Failure" class="fa fa-bolt"></span></a>
+          </li>
+          <li>
+            <a ng-href="" ng-click="cascadingPkgAlert();"><span style="color: {{packageAlertColor}};;" title="Simulate Package Failure" class="fa fa-tag"></span></a>
           </li>
           <li>
             <a ng-href="" ng-click="resetAll();"><span title="Reset Demo Data" class="fa fa-refresh"></span></a>

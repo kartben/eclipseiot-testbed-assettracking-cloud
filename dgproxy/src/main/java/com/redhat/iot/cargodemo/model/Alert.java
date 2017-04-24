@@ -1,40 +1,81 @@
 package com.redhat.iot.cargodemo.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Date;
 
 @XmlRootElement(name="alert")
 public class Alert {
-    private String msg;
-    private String vin;
-    private String sensor_id;
+    private Date date;
+    private String from;
+    private String desc;
+    private String message;
+    private String type;
+    private String truckid;
+    private String sensorid;
 
-    public Alert(String msg, String vin, String sensor_id) {
-        this.msg = msg;
-        this.vin = vin;
-        this.sensor_id = sensor_id;
+    public Alert(Date date, String from, String desc, String message, String type, String truckid, String sensorid) {
+        this.date = date;
+        this.from = from;
+        this.desc = desc;
+        this.message = message;
+        this.type = type;
+        this.truckid = truckid;
+        this.sensorid = sensorid;
     }
 
-    public String getMsg() {
-        return msg;
+    public Date getDate() {
+        return date;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public void setDate(Date date) {
+        this.date = date;
     }
 
-    public String getVin() {
-        return vin;
+    public String getFrom() {
+        return from;
     }
 
-    public void setVin(String vin) {
-        this.vin = vin;
+    public void setFrom(String from) {
+        this.from = from;
     }
 
-    public String getSensor_id() {
-        return sensor_id;
+    public String getDesc() {
+        return desc;
     }
 
-    public void setSensor_id(String sensor_id) {
-        this.sensor_id = sensor_id;
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getTruckid() {
+        return truckid;
+    }
+
+    public void setTruckid(String truckid) {
+        this.truckid = truckid;
+    }
+
+    public String getSensorid() {
+        return sensorid;
+    }
+
+    public void setSensorid(String sensorid) {
+        this.sensorid = sensorid;
     }
 }

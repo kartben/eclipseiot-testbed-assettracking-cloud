@@ -574,6 +574,7 @@ angular.module('app')
                     $scope.vehicles.forEach(function (v) {
                         if (v.vin == al.vin) {
                             v.status = "warning";
+                            v.statusMsg = al.message;
                         }
                     });
                 })
@@ -954,10 +955,23 @@ angular.module('app')
             }])
 
     .controller("HeaderController",
-        ['$scope', '$location', '$http', 'APP_CONFIG', 'Notifications', 'SensorData', 'Reports',
-            function ($scope, $location, $http, APP_CONFIG, Notifications, SensorData, Reports) {
+        ['$scope', '$location', '$timeout', '$http', 'APP_CONFIG', 'Notifications', 'SensorData', 'Reports',
+            function ($scope, $location, $timeout, $http, APP_CONFIG, Notifications, SensorData, Reports) {
+
+                $scope.veh = null;
+                $scope.pkg = null;
+
+                $scope.vehicleAlertColor = 'orange';
+                $scope.packageAlertColor = 'green';
+
+                $scope.$on('vehicles:selected', function(evt, veh) {
+                    $scope.veh = veh;
+                });
+                $scope.$on('package:selected', function(evt, pkg) {
+                    $scope.pkg = pkg;
+                });
                 $scope.userInfo = {
-                    fullName: "John Q. Shipper"
+                    fullName: "Mary Q. Shipper"
                 };
 
                 $scope.$on("resetAll", function(evt) {
@@ -986,7 +1000,27 @@ angular.module('app')
 
 
                 $scope.cascadingAlert = function() {
-                    SensorData.cascadingAlert();
+                    if (!$scope.veh) {
+                        Notifications.warn("You must first choose a vehicle for which to simulate failure!");
+                        return;
+                    }
+                    $scope.vehicleAlertColor = 'gray';
+                    $timeout(function() {
+                        $scope.vehicleAlertColor = 'orange';
+                    }, 1000);
+                    SensorData.cascadingAlert($scope.veh);
+                };
+
+                $scope.cascadingPkgAlert = function() {
+                    if (!$scope.pkg || !$scope.veh) {
+                        Notifications.warn("You must first choose a vehicle and package for which to simulate package failure!");
+                        return;
+                    }
+                    $scope.packageAlertColor = 'gray';
+                    $timeout(function() {
+                        $scope.packageAlertColor = 'green';
+                    }, 1000);
+                    SensorData.cascadingPkgAlert($scope.veh, $scope.pkg);
                 };
 
             }])

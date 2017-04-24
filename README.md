@@ -1,12 +1,13 @@
-Red Hat IoT Precious Cargo Demo
-================================
+Red Hat Fleet Telematics & Asset Tracking IoT Demo
+==================================================
 This is an example IoT demo showing a realtime updating dashboard of data streaming from an
-IoT gateway device (based on Eclipse Kura) through the Eclipse Kapua.
+IoT gateway device (based on Eclipse Kura) through an Eclipse Kapua-based instance.
 
 It demonstrates realtime fleet telematics, package tracking, alerting, and a telemetry dashboard showing critical measurements of packages in transit,
 including temperature, humidity, displacement, light levels, etc.
 
-![Dashboard Screenshot](/../screenshots/screenshots/iot-dashboard.png?raw=true "Dashboard Screenshot")
+![Dashboard Screenshot](docs/screenshots/fleet.png "Dashboard Screenshot")
+![Dashboard Screenshot](docs/screenshots/exec.png "Exec Dashboard Screenshot")
 
 Technologies used:
 
@@ -47,12 +48,32 @@ If you see some components with "No Deployments" or are not building, you may ne
 definitions for ``wildfly`` and ``jboss-datagrid``. To do so, run these commands:
 
 ```
+oc login -u system:admin (Or login with any userid that has cluster-admin privileges, TODO: Explain all options here)
 oc create -n openshift -f https://raw.githubusercontent.com/jboss-openshift/application-templates/master/jboss-image-streams.json
 oc create -n openshift -f https://raw.githubusercontent.com/openshift/origin/master/examples/image-streams/image-streams-centos7.json
 ```
 
 Once everything is up and running, you can access the demo using the URL of the `dashboard` route,
 for example `http://dashboard-eclipseiot-assettracking-testbed.domain`
+
+Confirm that all the components are running successfully:
+
+```
+oc get pods --show-all=false
+```
+You should see the following pods and their status:
+
+|NAME                 |   READY     | STATUS  |
+|---------------------|:-----------:|:-------:|
+|dashboard-1-xxx      |    1/1      | Running |
+|datastore-1-xxx      |    1/1      | Running |
+|datastore-proxy-1-xxx|    1/1      | Running |
+|elasticsearch-1-xxx  |    1/1      | Running |
+|kapua-api-1-wc1l7    |    1/1      | Running |
+|kapua-broker-1-xxx   |    1/1      | Running |
+|kapua-console-1-xxx  |    1/1      | Running |
+|simulator-1-xxx      |    1/1      | Running |
+|sql-1-xxx            |    1/1      | Running |
 
 Add template to "Add to project"
 --------------------------------
