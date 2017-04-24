@@ -90,9 +90,9 @@
     display: none;
 }
 
-.chart .axis {
+/*.chart .axis {
     display: none;
-}
+}*/
 
 .scrollArea table th .box {
     background-clip: padding-box;
