@@ -23,7 +23,7 @@ die() { printf "$@" "\n" 1>&2 ; exit 1; }
 
 # test if the project is already created ... fail otherwise 
 
-$OC describe "project/$OPENSHIFT_PROJECT_NAME" &>/dev/null || die "Project '$OPENSHIFT_PROJECT_NAME' not created or OpenShift is unreachable. Try with:\n\n\toc new-project eclipse-kapua\n\n"
+$OC describe "project/$OPENSHIFT_PROJECT_NAME" &>/dev/null || die "Project '$OPENSHIFT_PROJECT_NAME' not created or OpenShift is unreachable. Try with:\n\n\toc new-project eclipseiot-assettracking-testbed"
 
 ### Create Kapua from template
 
