@@ -145,8 +145,8 @@ public class UtilsEndpoint {
         List<Telemetry> telemetry = new ArrayList<>();
         telemetry.add(new Telemetry("°C", 40.0, 0.0, "Temperature", "Ambient"));
         telemetry.add(new Telemetry("%", 100.0, 0.0, "Humidity", "Humidity"));
-        telemetry.add(new Telemetry("lm", 400.0, 100.0, "Light", "Light"));
-        telemetry.add(new Telemetry("inHg", 31, 29, "Pressure", "Pressure"));
+        telemetry.add(new Telemetry("lm", 50.0, 0.0, "Light", "Light"));
+        telemetry.add(new Telemetry("inHg", 1020, 970, "Pressure", "Pressure"));
 
         Customer cust = customerCache.get(rand(COMPANIES));
 
